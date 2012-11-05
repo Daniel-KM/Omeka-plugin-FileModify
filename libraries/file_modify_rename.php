@@ -40,6 +40,7 @@ function file_modify_rename($file)
     // Change 2 (manages an error of the provider of the scanned images):
     // - Phare / ENPC01_PH_663 / ENPC01_PH_663_G001_1873.jpg
     //   => ENPC01_PH_663_1873_G001.jpg
+    // Finally, this second change is not used, but kept for information.
     //
     // TODO Use regex or xml files if naming convention is more complex.
 

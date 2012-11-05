@@ -1,6 +1,5 @@
 <?php
 /**
- * @version $Id$
  * @copyright Daniel Berthereau for École des Ponts ParisTech, 2012
  * @license http://www.cecill.info/licences/Licence_CeCILL_V2-en.txt
  * @license http://www.gnu.org/licenses/gpl-3.0.txt
@@ -56,7 +55,13 @@ class FileModifyPlugin extends Omeka_Plugin_Abstract
      */
     public function hookUninstall()
     {
-        self::_uninstallOptions();
+        $options = $this->_options;
+        if (!is_array($options)) {
+            return;
+        }
+        foreach ($options as $name => $value) {
+            delete_option($name);
+        }
     }
 
     /**

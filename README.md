@@ -111,7 +111,7 @@ Copyright Daniel Berthereau for École des Ponts ParisTech, 2012
 
 [1]: http://www.omeka.org "Omeka.org"
 [2]: https://github.com/Daniel-KM/ArchiveRepertory "GitHub ArchiveRepertory"
-[3]: https://github.com/Daniel-KM/FileModify "GitHub FileModify"
+[3]: https://github.com/Daniel-KM/FileModify/Issues "GitHub FileModify"
 [4]: http://www.cecill.info/licences/Licence_CeCILL_V2-en.html "CeCILL"
 [5]: https://www.gnu.org/licenses/gpl-3.0.html "GNU/GPL"
 [6]: http://github.com/Daniel-KM "Daniel_KM"
