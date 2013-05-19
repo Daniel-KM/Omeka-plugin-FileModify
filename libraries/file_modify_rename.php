@@ -45,7 +45,7 @@ function file_modify_rename($file)
     // TODO Use regex or xml files if naming convention is more complex.
 
     // Only rename images.
-    if (strstr($file->mime_browser, '/', TRUE) != 'image') {
+    if (strstr($file->mime_type, '/', TRUE) != 'image') {
         return '';
     }
 

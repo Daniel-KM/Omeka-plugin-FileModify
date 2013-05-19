@@ -28,7 +28,7 @@ function file_modify_command($file)
     // Remove this option if you want to hard code the command.
     $command = get_option('file_modify_command');
     if ($command) {
-        $filePath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $file->archive_filename;
+        $filePath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $file->filename;
 
         // Placeholder is %filepath%.
         if (strpos($command, '%filepath%')) {

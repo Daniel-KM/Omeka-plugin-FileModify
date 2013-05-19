@@ -1,17 +1,12 @@
 <?php
 /**
- * @copyright Daniel Berthereau for École des Ponts ParisTech, 2012
- * @license http://www.cecill.info/licences/Licence_CeCILL_V2-en.txt
- * @license http://www.gnu.org/licenses/gpl-3.0.txt
- * @package FileModify
- */
-
-/**
  * Modify (convert, compress, watermark, rename or any other command) uploaded
  * file before saving it in archive folder and before creating metadata in Omeka
  * database. Renaming requires Archive Repertory plugin.
  *
- * @see README.md
+ * @copyright Daniel Berthereau, 2012-2013
+ * @license http://www.cecill.info/licences/Licence_CeCILL_V2-en.txt
+ * @package FileModify
  */
 
 /**
@@ -19,27 +14,34 @@
  *
  * @package FileModify
  */
-class FileModifyPlugin extends Omeka_Plugin_Abstract
+class FileModifyPlugin extends Omeka_Plugin_AbstractPlugin
 {
     /**
      * Command to call to create derivatives.
      */
-    const IMAGEMAGICK_COMMAND = 'convert';
+    const IMAGEMAGICK_CONVERT_COMMAND = 'convert';
 
+    /**
+     * @var array This plugin's hooks.
+     */
     protected $_hooks = array(
         'install',
         'uninstall',
         'config_form',
         'config',
-        'before_insert_file',
+        'before_save_file',
     );
 
+    /**
+     * @var array This plugin's options.
+     */
     protected $_options = array(
         'file_modify_convert_resolution' => '',
         'file_modify_convert_quality' => '',
         'file_modify_convert_resize' => '',
         'file_modify_convert_append' => '',
         'file_modify_command' => '',
+        'file_modify_rename' => FALSE,
     );
 
     /**
@@ -47,7 +49,7 @@ class FileModifyPlugin extends Omeka_Plugin_Abstract
      */
     public function hookInstall()
     {
-        self::_installOptions();
+        $this->_installOptions();
     }
 
     /**
@@ -55,13 +57,7 @@ class FileModifyPlugin extends Omeka_Plugin_Abstract
      */
     public function hookUninstall()
     {
-        $options = $this->_options;
-        if (!is_array($options)) {
-            return;
-        }
-        foreach ($options as $name => $value) {
-            delete_option($name);
-        }
+        $this->_uninstallOptions();
     }
 
     /**
@@ -69,7 +65,7 @@ class FileModifyPlugin extends Omeka_Plugin_Abstract
      */
     public function hookConfigForm()
     {
-        include('config_form.php');
+        require 'config_form.php';
     }
 
     /**
@@ -77,55 +73,64 @@ class FileModifyPlugin extends Omeka_Plugin_Abstract
      *
      * @param array Options set in the config form.
      */
-    public function hookConfig($post)
+    public function hookConfig($args)
     {
+        $post = $args['post'];
+
         // Save settings.
         set_option('file_modify_convert_resolution', $post['file_modify_convert_resolution']);
         set_option('file_modify_convert_quality', $post['file_modify_convert_quality']);
         set_option('file_modify_convert_resize', $post['file_modify_convert_resize']);
         set_option('file_modify_convert_append', $post['file_modify_convert_append']);
         set_option('file_modify_command', $post['file_modify_command']);
+        set_option('file_modify_rename', (int) (boolean) $post['file_modify_rename']);
     }
 
     /**
      * Manages transformation of a file before saving it.
      */
-    public function hookBeforeInsertFile($file)
+    public function hookBeforeSaveFile($args)
     {
-        // ImageMagick convert command
-        if (strstr($file->mime_browser, '/', TRUE) == 'image') {
-            self::_convert($file);
-        }
+        $post = $args['post'];
+        $file = $args['record'];
 
-        // General command.
-        if (get_plugin_ini('FileModify', 'file_modify_allow_command') == 'TRUE') {
-            require_once('libraries/file_modify_command.php');
-            $result = file_modify_command($file);
-            if (!empty($result)) {
-                throw new Zend_Exception('Something went wrong when applying a command on the uploaded file with File Modify plugin. Please notify an administrator.');
+        if ($args['insert']) {
+            // Uses ImageMagick convert command only on images.
+            if (strstr($file->mime_type, '/', TRUE) == 'image') {
+                self::_convert($file);
             }
-        }
 
-        // Rename command.
-        if (plugin_is_active('ArchiveRepertory')
-                && get_option('archive_repertory_keep_original_filename')
-            ) {
-            // Check if filename is a good one or not.
-            require_once('libraries/file_modify_rename.php');
-            $new_filename = file_modify_rename($file);
+            // General command.
+            if (get_plugin_ini('FileModify', 'file_modify_allow_command') == 'TRUE') {
+                require_once('libraries' . DIRECTORY_SEPARATOR . 'file_modify_command.php');
+                $result = file_modify_command($file);
+                if (!empty($result)) {
+                    throw new Zend_Exception('Something went wrong when applying a command on the uploaded file with File Modify plugin. Please notify an administrator.');
+                }
+            }
 
-            if (!empty($new_filename)
-                    && ($file->archive_filename != $new_filename)
+            // Rename command.
+            if ((boolean) get_option('file_modify_rename')
+                    && plugin_is_active('ArchiveRepertory')
+                    && get_option('archive_repertory_keep_original_filename')
                 ) {
-                $operation = new Omeka_Storage_Adapter_Filesystem(array(
-                    'localDir' => sys_get_temp_dir(),
-                    'webDir' => sys_get_temp_dir(),
-                ));
-                $operation->move($file->archive_filename, $new_filename);
+                // Check if filename is a good one or not.
+                require_once('libraries' . DIRECTORY_SEPARATOR . 'file_modify_rename.php');
+                $new_filename = file_modify_rename($file);
 
-                // Update file in database (automatically done because it's an object in a hook).
-                $file->archive_filename = $new_filename;
-                $file->original_filename = $new_filename;
+                if (!empty($new_filename)
+                        && ($file->filename != $new_filename)
+                    ) {
+                    $operation = new Omeka_Storage_Adapter_Filesystem(array(
+                        'localDir' => sys_get_temp_dir(),
+                        'webDir' => sys_get_temp_dir(),
+                    ));
+                    $operation->move($file->filename, $new_filename);
+
+                    // Update file in database (automatically done because it's an object in a hook).
+                    $file->filename = $new_filename;
+                    $file->original_filename = $new_filename;
+                }
             }
         }
     }
@@ -137,8 +142,8 @@ class FileModifyPlugin extends Omeka_Plugin_Abstract
     {
         $convertPath = self::_getPathToImageMagick();
 
-        $filePath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $file->archive_filename;
-        $filePathTemp = sys_get_temp_dir() . DIRECTORY_SEPARATOR . pathinfo($file->archive_filename, PATHINFO_FILENAME) . '_' . date('Ymd-His') . '.' . pathinfo($file->archive_filename, PATHINFO_EXTENSION);
+        $filePath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $file->filename;
+        $filePathTemp = sys_get_temp_dir() . DIRECTORY_SEPARATOR . pathinfo($file->filename, PATHINFO_FILENAME) . '_' . date('Ymd-His') . '.' . pathinfo($file->filename, PATHINFO_EXTENSION);
 
         $resolution = get_option('file_modify_convert_resolution') ?
             '-resample ' . escapeshellarg(get_option('file_modify_convert_resolution')) :
@@ -210,14 +215,10 @@ class FileModifyPlugin extends Omeka_Plugin_Abstract
         // Assert that this is both a valid path and a directory (cannot be a
         // script).
         if (($cleanPath = realpath($rawPath)) && is_dir($cleanPath)) {
-            $imPath = rtrim($cleanPath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . self::IMAGEMAGICK_COMMAND;
+            $imPath = rtrim($cleanPath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . self::IMAGEMAGICK_CONVERT_COMMAND;
             return $imPath;
         } else {
             throw new Exception('ImageMagick is not properly configured: invalid directory given for the ImageMagick command!');
         }
     }
 }
-
-/** Installation of the plugin. */
-$fileModify = new FileModifyPlugin();
-$fileModify->setUp();
