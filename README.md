@@ -5,15 +5,13 @@ File Modify (plugin for Omeka)
 Summary
 -------
 
-This plugin allows to modify (convert, compress, watermark, rename or any other
-command) uploaded file before saving it in archive folder and before creating
-metadata in Omeka database.
+This plugin for [Omeka] allows to modify (convert, compress, watermark, rename
+or any other command) uploaded file before saving it in archive folder and
+before creating metadata in Omeka database.
 
-Renaming requires Archive Repertory plugin and the "keep original filename"
-parameter set. Files imported via the user interface (add content) are not
-renamed.
+The example process adds a watermark to each uploaded image.
 
-For more information on Omeka, see [Omeka][1].
+Renaming requires [Archive Repertory] plugin.
 
 
 Installation
@@ -23,17 +21,12 @@ Uncompress files and rename plugin folder "FileModify".
 
 Then install it like any other Omeka plugin and follow the config instructions.
 
-Finally, you should adapt the files `libraries/file_modify_command.php` and
+Finally, you should adapt the files `libraries/file_modify_preprocess.php` and
 `libraries/file_modify_rename.php` to your specific needs.
 
-You can allow user to set a command to execute in the plugin.ini: simply change
-"file_modify_allow_command" to "TRUE". **Warning**: it can be a security gap if
-you don't trust the admin of the site. That's why the use of this parameter is
-disabled by default. To avoid this risk, you can hard code the command in
-"libraries/file_modify_command.php".
-
-If you use the renaming feature, you need to install the
-[Archive Repertory plugin][2] and to enable it.
+If you use the renaming feature, you need to install and enable the plugin
+[Archive Repertory]. Furthermore, you should take care with non-ascii filenames
+if your server is not fully UTF-8 compliant.
 
 
 Warning
@@ -41,38 +34,37 @@ Warning
 
 Use it at your own risk.
 
-It's always recommended to backup your database so you can roll back if needed.
+It's always recommended to backup your files and database so you can roll back
+if needed.
 
 
 Troubleshooting
 ---------------
 
-See online issues on [GitHub][3].
+See online issues on the [File Modify issues] page on GitHub.
 
 
 License
 -------
 
-This plugin is published under the [CeCILL v2][3] licence, compatible with
-[GNU/GPL][4].
+This plugin is published under the [CeCILL v2.1] licence, compatible with
+[GNU/GPL] and approved by [FSF] and [OSI].
 
-In consideration of access to the source code and the rights to copy,
-modify and redistribute granted by the license, users are provided only
-with a limited warranty and the software's author, the holder of the
-economic rights, and the successive licensors only have limited liability.
+In consideration of access to the source code and the rights to copy, modify and
+redistribute granted by the license, users are provided only with a limited
+warranty and the software's author, the holder of the economic rights, and the
+successive licensors only have limited liability.
 
-In this respect, the risks associated with loading, using, modifying
-and/or developing or reproducing the software by the user are brought to
-the user's attention, given its Free Software status, which may make it
-complicated to use, with the result that its use is reserved for
-developers and experienced professionals having in-depth computer
-knowledge. Users are therefore encouraged to load and test the
-suitability of the software as regards their requirements in conditions
-enabling the security of their systems and/or data to be ensured and,
-more generally, to use and operate it in the same conditions of
-security. This Agreement may be freely reproduced and published,
-provided it is not altered, and that no provisions are either added or
-removed herefrom.
+In this respect, the risks associated with loading, using, modifying and/or
+developing or reproducing the software by the user are brought to the user's
+attention, given its Free Software status, which may make it complicated to use,
+with the result that its use is reserved for developers and experienced
+professionals having in-depth computer knowledge. Users are therefore encouraged
+to load and test the suitability of the software as regards their requirements
+in conditions enabling the security of their systems and/or data to be ensured
+and, more generally, to use and operate it in the same conditions of security.
+This Agreement may be freely reproduced and published, provided it is not
+altered, and that no provisions are either added or removed herefrom.
 
 
 Contact
@@ -80,10 +72,10 @@ Contact
 
 Current maintainers:
 
-* Daniel Berthereau (see [Daniel-KM][6])
+* Daniel Berthereau (see [Daniel-KM] on GitHub)
 
-First version of this plugin has been built for [École des Ponts ParisTech][6].
-
+First version of this plugin has been built for [École des Ponts ParisTech].
+Upgrade to 2.0 has been made for [École des Mines ParisTech].
 
 Copyright
 ---------
@@ -91,10 +83,13 @@ Copyright
 * Copyright Daniel Berthereau, 2012-2013
 
 
-[1]: http://www.omeka.org "Omeka.org"
-[2]: https://github.com/Daniel-KM/ArchiveRepertory "GitHub ArchiveRepertory"
-[3]: https://github.com/Daniel-KM/FileModify/Issues "GitHub FileModify"
-[4]: http://www.cecill.info/licences/Licence_CeCILL_V2-en.html "CeCILL v2"
-[5]: https://www.gnu.org/licenses/gpl-3.0.html "GNU/GPL v3"
-[6]: http://github.com/Daniel-KM "Daniel Berthereau"
-[7]: http://bibliotheque.enpc.fr "École des Ponts ParisTech / ENPC"
+[Omeka]: http://www.omeka.org
+[Archive Repertory]: https://github.com/Daniel-KM/ArchiveRepertory
+[File Modify issues]: https://github.com/Daniel-KM/FileModify/Issues
+[CeCILL v2.1]: http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html
+[GNU/GPL]: https://www.gnu.org/licenses/gpl-3.0.html "GNU/GPL v3"
+[FSF]: https://www.fsf.org
+[OSI]: http://opensource.org
+[Daniel-KM]: http://github.com/Daniel-KM "Daniel Berthereau"
+[École des Ponts ParisTech]: http://bibliotheque.enpc.fr
+[École des Mines ParisTech]: http://bib.mines-paristech.fr

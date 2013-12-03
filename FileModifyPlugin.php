@@ -26,6 +26,7 @@ class FileModifyPlugin extends Omeka_Plugin_AbstractPlugin
      */
     protected $_hooks = array(
         'install',
+        'upgrade',
         'uninstall',
         'config_form',
         'config',
@@ -40,8 +41,9 @@ class FileModifyPlugin extends Omeka_Plugin_AbstractPlugin
         'file_modify_convert_quality' => '',
         'file_modify_convert_resize' => '',
         'file_modify_convert_append' => '',
-        'file_modify_command' => '',
-        'file_modify_rename' => FALSE,
+        'file_modify_preprocess' => false,
+        'file_modify_preprocess_parameters' => '',
+        'file_modify_rename' => false,
     );
 
     /**
@@ -50,6 +52,19 @@ class FileModifyPlugin extends Omeka_Plugin_AbstractPlugin
     public function hookInstall()
     {
         $this->_installOptions();
+    }
+
+    /**
+     * Upgrades the plugin.
+     */
+    public function hookUpgrade($args)
+    {
+        $oldVersion = $args['old_version'];
+        $newVersion = $args['new_version'];
+
+        if (version_compare($oldVersion, '2.2', '<')) {
+            delete_option('file_modify_command');
+        }
     }
 
     /**
@@ -65,7 +80,9 @@ class FileModifyPlugin extends Omeka_Plugin_AbstractPlugin
      */
     public function hookConfigForm()
     {
-        require 'config_form.php';
+        echo get_view()->partial(
+            'plugins/file-modify-config-form.php'
+        );
     }
 
     /**
@@ -82,7 +99,8 @@ class FileModifyPlugin extends Omeka_Plugin_AbstractPlugin
         set_option('file_modify_convert_quality', $post['file_modify_convert_quality']);
         set_option('file_modify_convert_resize', $post['file_modify_convert_resize']);
         set_option('file_modify_convert_append', $post['file_modify_convert_append']);
-        set_option('file_modify_command', $post['file_modify_command']);
+        set_option('file_modify_preprocess', (int) (boolean) $post['file_modify_preprocess']);
+        set_option('file_modify_preprocess_parameters', $post['file_modify_preprocess_parameters']);
         set_option('file_modify_rename', (int) (boolean) $post['file_modify_rename']);
     }
 
@@ -100,10 +118,10 @@ class FileModifyPlugin extends Omeka_Plugin_AbstractPlugin
                 self::_convert($file);
             }
 
-            // General command.
-            if (get_plugin_ini('FileModify', 'file_modify_allow_command') == 'TRUE') {
-                require_once('libraries' . DIRECTORY_SEPARATOR . 'file_modify_command.php');
-                $result = file_modify_command($file);
+            // Preprocess command.
+            if ((boolean) get_option('file_modify_preprocess')) {
+                require_once 'libraries' . DIRECTORY_SEPARATOR . 'file_modify_preprocess.php';
+                $result = file_modify_preprocess($file, get_option('file_modify_preprocess_parameters'));
                 if (!empty($result)) {
                     throw new Zend_Exception('Something went wrong when applying a command on the uploaded file with File Modify plugin. Please notify an administrator.');
                 }
@@ -112,10 +130,10 @@ class FileModifyPlugin extends Omeka_Plugin_AbstractPlugin
             // Rename command.
             if ((boolean) get_option('file_modify_rename')
                     && plugin_is_active('ArchiveRepertory')
-                    && get_option('archive_repertory_keep_original_filename')
+                    && get_option('archive_repertory_file_keep_original_name')
                 ) {
                 // Check if filename is a good one or not.
-                require_once('libraries' . DIRECTORY_SEPARATOR . 'file_modify_rename.php');
+                require_once 'libraries' . DIRECTORY_SEPARATOR . 'file_modify_rename.php';
                 $new_filename = file_modify_rename($file);
 
                 if (!empty($new_filename)
@@ -162,7 +180,7 @@ class FileModifyPlugin extends Omeka_Plugin_AbstractPlugin
             '';
 
         if ($resolution . $quality . $resize . $append == '') {
-            return TRUE;
+            return true;
         }
 
         // Convert command.
@@ -197,7 +215,7 @@ class FileModifyPlugin extends Omeka_Plugin_AbstractPlugin
             // Delete original file.
             $operation->delete($filePathSave);
 
-            return TRUE;
+            return true;
         }
         else {
             throw new Zend_Exception('Something went wrong with image conversion (File Modify plugin). Please notify an administrator.');
