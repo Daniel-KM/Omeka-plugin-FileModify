@@ -35,7 +35,7 @@ function file_modify_preprocess($file, $args)
     $dissolve = 95;
 
     // Get parameters.
-    $args = explode(';', $args);
+    $args = explode(' ', $args);
     if (isset($args[0]) && !empty($args[0])) {
         $watermark = $args[0];
         $watermark = trim($watermark);
@@ -71,7 +71,7 @@ function file_modify_preprocess($file, $args)
             . ' -dissolve ' . escapeshellarg($dissolve . '%')
             . ' -gravity ' . escapeshellarg($gravity)
             . ' -quality ' . escapeshellarg($quality)
-            . escapeshellarg($watermark)
+            . ' ' . escapeshellarg($watermark)
             . ' %filepath%'
             . ' %filepath%';
     }

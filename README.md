@@ -80,7 +80,7 @@ Upgrade to 2.0 has been made for [École des Mines ParisTech].
 Copyright
 ---------
 
-* Copyright Daniel Berthereau, 2012-2013
+* Copyright Daniel Berthereau, 2012-2014
 
 
 [Omeka]: http://www.omeka.org

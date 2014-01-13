@@ -88,7 +88,7 @@
         <?php echo $view->formText('file_modify_preprocess_parameters', get_option('file_modify_preprocess_parameters'), null); ?>
         <p class="explanation">
             <?php echo __('These parameters will be passed to the "libraries/file_modify_preprocess.php" script.')  .' '; ?>
-            <?php echo __('Multiple values can be separated with a ";".'); ?>
+            <?php echo __('Multiple values can be separated with a space (default script).'); ?>
         </p>
     </div>
 </div>
