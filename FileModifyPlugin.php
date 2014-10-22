@@ -78,30 +78,28 @@ class FileModifyPlugin extends Omeka_Plugin_AbstractPlugin
     /**
      * Shows plugin configuration page.
      */
-    public function hookConfigForm()
+    public function hookConfigForm($args)
     {
-        echo get_view()->partial(
-            'plugins/file-modify-config-form.php'
+        $view = $args['view'];
+        echo $view->partial(
+            'plugins/file-modify-config-form.php',
+            array(
+                'view' => $view,
+            )
         );
     }
 
     /**
-     * Saves plugin configuration.
+     * Processes the configuration form.
      *
-     * @param array Options set in the config form.
+     * @return void
      */
     public function hookConfig($args)
     {
         $post = $args['post'];
-
-        // Save settings.
-        set_option('file_modify_convert_resolution', $post['file_modify_convert_resolution']);
-        set_option('file_modify_convert_quality', $post['file_modify_convert_quality']);
-        set_option('file_modify_convert_resize', $post['file_modify_convert_resize']);
-        set_option('file_modify_convert_append', $post['file_modify_convert_append']);
-        set_option('file_modify_preprocess', (int) (boolean) $post['file_modify_preprocess']);
-        set_option('file_modify_preprocess_parameters', $post['file_modify_preprocess_parameters']);
-        set_option('file_modify_rename', (int) (boolean) $post['file_modify_rename']);
+        foreach ($post as $key => $value) {
+            set_option($key, $value);
+        }
     }
 
     /**
@@ -196,7 +194,7 @@ class FileModifyPlugin extends Omeka_Plugin_AbstractPlugin
         exec($command, $result_array, $result_value);
 
         if (empty($result_value)) {
-            // For security reason and to use only Omeka API, we do the move in
+            // For security reason and to use only Omeka Core, we do the move in
             // three times.
             $filePath = pathinfo($filePath, PATHINFO_BASENAME);
             $filePathTemp = pathinfo($filePathTemp, PATHINFO_BASENAME);
