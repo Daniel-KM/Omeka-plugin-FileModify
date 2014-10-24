@@ -51,6 +51,8 @@ class FileModifyPlugin extends Omeka_Plugin_AbstractPlugin
      */
     public function hookInstall()
     {
+        $this->_options['file_modify_preprocess_parameters'] = realpath(dirname(__FILE__) . '/views/shared/images/qrcode.png')
+            . ' South 25 95';
         $this->_installOptions();
     }
 
