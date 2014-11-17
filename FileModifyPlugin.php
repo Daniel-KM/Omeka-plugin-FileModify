@@ -128,7 +128,7 @@ class FileModifyPlugin extends Omeka_Plugin_AbstractPlugin
                 throw new Zend_Exception('Unable to backup original file before processing. Please notify an administrator.');
             }
 
-            // Uses ImageMagick convert command only on images.
+            // Watermarks images only.
             if (strstr($file->mime_type, '/', TRUE) == 'image') {
                 self::_convert($file);
             }
@@ -210,7 +210,9 @@ class FileModifyPlugin extends Omeka_Plugin_AbstractPlugin
     }
 
     /**
-     * Convert an image with ImageMagick.
+     * Convert an image with ExternalImageMagick.
+     *
+     * @todo Possibility to use GD or Imagick.
      */
     public static function _convert($file)
     {
@@ -219,21 +221,21 @@ class FileModifyPlugin extends Omeka_Plugin_AbstractPlugin
         $filePath = $file->getPath('original');
         $filePathTemp = sys_get_temp_dir() . DIRECTORY_SEPARATOR . pathinfo($file->filename, PATHINFO_FILENAME) . '_' . date('Ymd-His') . '.' . pathinfo($file->filename, PATHINFO_EXTENSION);
 
-        $resolution = get_option('file_modify_convert_resolution') ?
-            '-resample ' . escapeshellarg(get_option('file_modify_convert_resolution')) :
-            '';
+        $resolution = get_option('file_modify_convert_resolution')
+            ? '-resample ' . escapeshellarg(get_option('file_modify_convert_resolution'))
+            : '';
 
-        $quality = get_option('file_modify_convert_quality') ?
-            '-quality ' . escapeshellarg(get_option('file_modify_convert_quality')) :
-            '';
+        $quality = get_option('file_modify_convert_quality')
+            ? '-quality ' . escapeshellarg(get_option('file_modify_convert_quality'))
+            : '';
 
-        $resize = get_option('file_modify_convert_resize') ?
-            '-resize ' . escapeshellarg(get_option('file_modify_convert_resize')) :
-            '';
+        $resize = get_option('file_modify_convert_resize')
+            ? '-resize ' . escapeshellarg(get_option('file_modify_convert_resize'))
+            : '';
 
-        $append = get_option('file_modify_convert_append') ?
-            escapeshellarg(get_option('file_modify_convert_append')) :
-            '';
+        $append = get_option('file_modify_convert_append')
+            ? escapeshellarg(get_option('file_modify_convert_append'))
+            : '';
 
         if ($resolution . $quality . $resize . $append == '') {
             return true;

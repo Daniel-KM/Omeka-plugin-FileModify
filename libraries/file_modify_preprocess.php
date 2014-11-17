@@ -6,15 +6,16 @@
  * @note This file must be adapted to your needs.
  *
  * @todo Create specific exception class.
- * @todo GD for image watermark.
+ * @todo Use Imagick & GD for image watermark.
  */
 
 function file_modify_default_parameters()
 {
     // Values for watermark are set via config form and default are set below.
     return array_values(array(
+        'imageLibrary' => 'ExternalImageMagick',
+        // 'imageLibrary' => 'Imagick',
         // 'imageLibrary' => 'GD',
-        'imageLibrary' => 'Imagick',
         // Image magick: limit parameters for some shared host.
         // 'hostLimit' => ' ' . '-limit memory 50MB -limit map 100MB -limit area 25MB -limit disk 1GB -limit thread 2' . ' ',
         'hostLimit' => '',
@@ -79,10 +80,8 @@ function file_modify_preprocess($file, $args)
     $watermarkType = file_exists($watermark) ? 'file' : 'text';
     switch ($watermarkType) {
         case 'file':
-            // TODO Via ImageMagick only !
             switch ($imageLibrary) {
-                case 'Imagick':
-                case 'GD':
+                case 'ExternalImageMagick':
                     // Get some values from the current file.
                     // Fix a bug with libpng 1.2 and bad formatted png.
                     // @see http://www.imagemagick.org/discourse-server/viewtopic.php?f=3&t=22119
@@ -137,12 +136,16 @@ function file_modify_preprocess($file, $args)
                     unset($output);
                     exec($command, $output, $error);
                     break;
+
+                case 'Imagick':
+                case 'GD':
+
             }
             break;
 
         case 'text':
             switch ($imageLibrary) {
-                case 'Imagick':
+                case 'ExternalImageMagick':
                     // See http://www.imagemagick.org/Usage/annotating/
                     $command = 'identify -format "%[width] %[height] %Q" %filepath%';
                     $command = str_replace('%filepath%', escapeshellarg($filePath), $command);
@@ -169,7 +172,8 @@ function file_modify_preprocess($file, $args)
                     $command = 'convert'
                         . $hostLimit
                         . ' %filepath%'
-                        . ' -font "Liberation-Sans-Regular"'
+                        // . ' -font "Liberation-Sans-Regular"'
+                        . ' -font "Arial"'
                         . ' -pointsize ' . $pointsize
                         . ' -draw "gravity ' . escapeshellarg($gravity) . ' fill black text 0,12 ' . escapeshellarg($watermark . '  ') . ' fill yellow text 1,11 ' . escapeshellarg($watermark . '  ') . '"'
                         . ' %filepath%';
@@ -180,29 +184,26 @@ function file_modify_preprocess($file, $args)
                     exec($command, $output, $error);
                     break;
 
+                case 'Imagick':
+                    break;
+
                 case 'GD':
-                    list($width, $height, $format) = getimagesize($filePath);
-                    if (empty($format)) {
+                    // GD uses multiple functions to load an image, so this one manages all.
+                    try {
+                        $image = imagecreatefromstring(file_get_contents($filePath));
+                    } catch (Exception $e) {
+                        _log("GD failed to open the file. Details:\n$e", Zend_Log::ERR);
+                        return false;
+                    }
+                    if (empty($image)) {
                         return false;
                     }
 
-                    switch ($format) {
-                        case IMAGETYPE_GIF:
-                            $image = imagecreatefromgif($filePath);
-                            break;
-                        case IMAGETYPE_JPEG:
-                            $image = imagecreatefromjpeg($filePath);
-                            break;
-                        case IMAGETYPE_PNG:
-                            $image = imagecreatefrompng($filePath);
-                            break;
-                        case null:
-                        default:
-                            return false;
-                    }
+                    list($width, $height, $format) = getimagesize($filePath);
 
                     // Calculate maximum height of a character, depending on used font.
-                    $font = PUBLIC_THEME_DIR . DIRECTORY_SEPARATOR . 'MuseumDigital' . DIRECTORY_SEPARATOR . 'fonts' . DIRECTORY_SEPARATOR . 'LiberationSans-Regular.ttf';
+                    // $font = PUBLIC_THEME_DIR . DIRECTORY_SEPARATOR . 'My Watermark' . DIRECTORY_SEPARATOR . 'fonts' . DIRECTORY_SEPARATOR . 'LiberationSans-Regular.ttf';
+                    $font = 'arial.ttf';
                     switch ($height) {
                         case $height <= 256: $pointsize = 12; break;
                         case $height <= 1024: $pointsize = 20; break;
