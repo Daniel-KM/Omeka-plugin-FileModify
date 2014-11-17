@@ -97,14 +97,22 @@ function file_modify_preprocess($file, $args)
                 case 'Imagick':
                 case 'GD':
                     // Get some values from the current file.
-                    $command = 'identify -format "%Q" %filepath%';
-                    $command = str_replace('%filepath%', escapeshellarg($filePath), $command);
-                    exec($command, $output, $error);
-                    if ($error) {
-                        return $error;
+                    // Fix a bug with libpng 1.2 and bad formatted png.
+                    // @see http://www.imagemagick.org/discourse-server/viewtopic.php?f=3&t=22119
+                    if ($file->mime_type == 'image/png') {
+                        $quality = 9;
                     }
-                    $quality = $output[0];
-                    unset($output);
+                    else {
+                        $command = 'identify -format "%Q" %filepath%';
+                        $command = str_replace('%filepath%', escapeshellarg($filePath), $command);
+                        unset($error);
+                        unset($output);
+                        exec($command, $output, $error);
+                        if ($error) {
+                            return $error;
+                        }
+                        $quality = $output[0];
+                    }
 
                     if ($size == 'fixe') {
                         $command = 'composite'
@@ -119,12 +127,13 @@ function file_modify_preprocess($file, $args)
                     else {
                         $command = 'identify -format "%[width]" %filepath%';
                         $command = str_replace('%filepath%', escapeshellarg($filePath), $command);
+                        unset($error);
+                        unset($output);
                         exec($command, $output, $error);
                         if ($error) {
                             return $error;
                         }
                         $width = $output[0];
-                        unset($output);
 
                         $width_watermark = $width * $size / 100;
                         $command = 'composite'
@@ -137,6 +146,8 @@ function file_modify_preprocess($file, $args)
                             . ' %filepath%';
                     }
                     $command = str_replace('%filepath%', escapeshellarg($filePath), $command);
+                    unset($error);
+                    unset($output);
                     exec($command, $output, $error);
                     break;
             }
@@ -148,13 +159,13 @@ function file_modify_preprocess($file, $args)
                     // See http://www.imagemagick.org/Usage/annotating/
                     $command = 'identify -format "%[width] %[height] %Q" %filepath%';
                     $command = str_replace('%filepath%', escapeshellarg($filePath), $command);
+                    unset($error);
+                    unset($output);
                     exec($command, $output, $error);
                     if ($error) {
                         return $error;
                     }
                     list($width, $height, $quality) = explode(' ', $output[0]);
-
-                    unset($output);
 
                     $width_watermark = $width * $size / 100;
                     $height_watermark = $height * $size / 100;
@@ -177,6 +188,8 @@ function file_modify_preprocess($file, $args)
                         . ' %filepath%';
 
                     $command = str_replace('%filepath%', escapeshellarg($filePath), $command);
+                    unset($error);
+                    unset($output);
                     exec($command, $output, $error);
                     break;
 
@@ -221,6 +234,7 @@ function file_modify_preprocess($file, $args)
                     shadow_text($image, $pointsize, $x, $y, $font, $watermark);
 
                     $error = imagejpeg($image, $filePath, 85);
+                    // Should return 0 if no error, not true.
                     $error = $error ? 0 : 1;
                     break;
             }
