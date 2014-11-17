@@ -1,13 +1,12 @@
 ﻿<?php
-
 /**
- * @file
  * This file should be adapted to your needs in order to transform uploaded
  * files before import in the archive folder and the database of Omeka.
  *
  * @note This file must be adapted to your needs.
  *
  * @todo Create specific exception class.
+ * @todo GD for image watermark.
  */
 
 function file_modify_default_parameters()
@@ -16,15 +15,11 @@ function file_modify_default_parameters()
     return array_values(array(
         // 'imageLibrary' => 'GD',
         'imageLibrary' => 'Imagick',
-        'saveUploaded' => true,
-        // TODO Use multiple derivatives fork.
-        'saveFolderPath' => FILES_DIR . DIRECTORY_SEPARATOR . 'uploaded' . DIRECTORY_SEPARATOR,
         // Image magick: limit parameters for some shared host.
         // 'hostLimit' => ' ' . '-limit memory 50MB -limit map 100MB -limit area 25MB -limit disk 1GB -limit thread 2' . ' ',
         'hostLimit' => '',
     ));
 }
-
 
 /**
  * Run a general command on a file. Function should be executed here.
@@ -39,19 +34,11 @@ function file_modify_default_parameters()
  */
 function file_modify_preprocess($file, $args)
 {
-    list($imageLibrary, $saveUploaded, $saveFolderPath, $hostLimit) = file_modify_default_parameters();
+    list($imageLibrary, $hostLimit) = file_modify_default_parameters();
 
-    // In all case, the file is saved in temp.
-    $filePath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $file->filename;
+    $filePath = $file->getPath('original');
 
-    // Save the image in the uploaded folder.
-    if ($saveUploaded) {
-        $saveFolderPath .= $file->item_id;
-        mkdir($saveFolderPath, 0777, true);
-        copy($filePath, $saveFolderPath . DIRECTORY_SEPARATOR . $file->original_filename);
-    }
-
-    // Now, the file need to be checked.
+    // Check the file before processing.
 
     // Only process images.
     if (strstr($file->mime_type, '/', TRUE) != 'image') {

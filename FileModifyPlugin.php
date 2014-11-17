@@ -37,6 +37,7 @@ class FileModifyPlugin extends Omeka_Plugin_AbstractPlugin
      * @var array This plugin's options.
      */
     protected $_options = array(
+        'file_modify_backup_path' => '',
         'file_modify_convert_resolution' => '',
         'file_modify_convert_quality' => '',
         'file_modify_convert_resize' => '',
@@ -99,6 +100,15 @@ class FileModifyPlugin extends Omeka_Plugin_AbstractPlugin
     public function hookConfig($args)
     {
         $post = $args['post'];
+
+        // Specific check for the backup path.
+        if (!empty($post['file_modify_backup_path'])) {
+            $post['file_modify_backup_path'] = realpath($post['file_modify_backup_path']);
+        }
+        if (empty($post['file_modify_backup_path'])) {
+            $post['file_modify_backup_path'] = '';
+        }
+
         foreach ($post as $key => $value) {
             set_option($key, $value);
         }
@@ -113,6 +123,11 @@ class FileModifyPlugin extends Omeka_Plugin_AbstractPlugin
         $file = $args['record'];
 
         if ($args['insert']) {
+            // Save the file in the uploaded folder if wanted.
+            if ($this->_backup($file) === false) {
+                throw new Zend_Exception('Unable to backup original file before processing. Please notify an administrator.');
+            }
+
             // Uses ImageMagick convert command only on images.
             if (strstr($file->mime_type, '/', TRUE) == 'image') {
                 self::_convert($file);
@@ -154,13 +169,54 @@ class FileModifyPlugin extends Omeka_Plugin_AbstractPlugin
     }
 
     /**
+     * Backup original file if wanted.
+     *
+     * @return boolean|null Null if not to be done, true if success, false else.
+     */
+    protected function _backup($file)
+    {
+        $backupPath = get_option('file_modify_backup_path');
+        if (!$backupPath) {
+            return null;
+        }
+
+        $filePath = $file->getPath('original');
+
+        // TODO Use multiple derivatives when committed.
+        $backupItemPath = $backupPath . DIRECTORY_SEPARATOR . $file->item_id;
+        if (!is_dir($backupItemPath)) {
+            @mkdir($backupItemPath, 0755, true);
+            if (!is_dir($backupItemPath)) {
+                return false;
+            }
+        }
+
+        // Avoid overwriting and rename new file.
+        $backupFilePath = $backupItemPath . DIRECTORY_SEPARATOR . $file->original_filename;
+        if (is_file($backupFilePath)) {
+            $folder = $backupItemPath;
+            $checkname = $name = pathinfo($file->original_filename, PATHINFO_FILENAME);
+            $extension = pathinfo($file->original_filename, PATHINFO_EXTENSION);
+            $i = 1;
+            while (glob($folder . DIRECTORY_SEPARATOR . $checkName . '{.*,.,\,,}', GLOB_BRACE)) {
+                $checkName = $name . '.' . $i++;
+            }
+            $backupFilePath = $backupItemPath . DIRECTORY_SEPARATOR
+                . $checkName
+                . ($extension ? '.' . $extension : '');
+        }
+        $result = copy($filePath, $backupFilePath);
+        return $result;
+    }
+
+    /**
      * Convert an image with ImageMagick.
      */
     public static function _convert($file)
     {
         $convertPath = self::_getPathToImageMagick();
 
-        $filePath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $file->filename;
+        $filePath = $file->getPath('original');
         $filePathTemp = sys_get_temp_dir() . DIRECTORY_SEPARATOR . pathinfo($file->filename, PATHINFO_FILENAME) . '_' . date('Ymd-His') . '.' . pathinfo($file->filename, PATHINFO_EXTENSION);
 
         $resolution = get_option('file_modify_convert_resolution') ?
@@ -225,7 +281,7 @@ class FileModifyPlugin extends Omeka_Plugin_AbstractPlugin
     /**
      * Retrieve the directory path to the ImageMagick 'convert' executable.
      *
-     * @see application/libraries/Omeka/File/Derivative/Image.php
+     * @see application/libraries/Omeka/File/Derivative/Strategy/ExternalImageMagick.php
      */
     protected static function _getPathToImageMagick()
     {
