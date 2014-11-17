@@ -2,14 +2,12 @@ File Modify (plugin for Omeka)
 ====================================
 
 
-Summary
--------
-
-This plugin for [Omeka] allows to modify (convert, compress, watermark, rename
-or any other command) uploaded file before saving it in archive folder and
-before creating metadata in Omeka database.
+[File Modify] is a plugin for [Omeka] allows to modify (convert, compress,
+watermark, rename or any other command) uploaded file before saving it in
+files folder and before creating metadata in Omeka database.
 
 The example process adds a watermark to each uploaded image.
+Original files can be backup automatically if wanted.
 
 Renaming requires [Archive Repertory] plugin.
 
@@ -22,7 +20,7 @@ Uncompress files and rename plugin folder "FileModify".
 Then install it like any other Omeka plugin and follow the config instructions.
 
 Finally, you should adapt the files `libraries/file_modify_preprocess.php` and
-`libraries/file_modify_rename.php` to your specific needs.
+`libraries/file_modify_rename.php` to your specific needs, if used.
 
 If you use the renaming feature, you need to install and enable the plugin
 [Archive Repertory]. Furthermore, you should take care with non-ascii filenames
@@ -34,8 +32,8 @@ Warning
 
 Use it at your own risk.
 
-It's always recommended to backup your files and database so you can roll back
-if needed.
+It's always recommended to backup your files and database regularly so you can
+roll back if needed.
 
 
 Troubleshooting
@@ -75,7 +73,7 @@ Current maintainers:
 * Daniel Berthereau (see [Daniel-KM] on GitHub)
 
 First version of this plugin has been built for [École des Ponts ParisTech].
-Upgrade to 2.0 has been made for [École des Mines ParisTech].
+Upgrade to 2.0 has been made for [Mines ParisTech].
 
 Copyright
 ---------
@@ -84,6 +82,7 @@ Copyright
 
 
 [Omeka]: http://www.omeka.org
+[File Modify]: https://github.com/Daniel-KM/FileModify
 [Archive Repertory]: https://github.com/Daniel-KM/ArchiveRepertory
 [File Modify issues]: https://github.com/Daniel-KM/FileModify/Issues
 [CeCILL v2.1]: http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html
@@ -92,4 +91,4 @@ Copyright
 [OSI]: http://opensource.org
 [Daniel-KM]: http://github.com/Daniel-KM "Daniel Berthereau"
 [École des Ponts ParisTech]: http://bibliotheque.enpc.fr
-[École des Mines ParisTech]: http://bib.mines-paristech.fr
+[Mines ParisTech]: https://patrimoine.mines-paristech.fr
