@@ -19,12 +19,39 @@ Uncompress files and rename plugin folder "FileModify".
 
 Then install it like any other Omeka plugin and follow the config instructions.
 
-Finally, you should adapt the files `libraries/file_modify_preprocess.php` and
-`libraries/file_modify_rename.php` to your specific needs, if used.
+Finally, you should adapt the files `libraries/FileModify/Preprocess.php` and
+`libraries/FileModify/Rename.php` to your specific needs, if used.
 
 If you use the renaming feature, you need to install and enable the plugin
 [Archive Repertory]. Furthermore, you should take care with non-ascii filenames
 if your server is not fully UTF-8 compliant.
+
+
+Usage
+-----
+
+Two mechanisms are provided in order to transform files.
+
+* Simple append to ImageMagick "convert" command
+A field allows to add simple parameters to "convert". Two examples: The first
+reduces the quality of the original and the second adds a watermark.
+
+```
+    -resample 96x96 -quality 50 -resize 50%
+    -pointsize 120 -draw "gravity South fill black text 0,12 'Powered by Omeka' fill blue text 1,11 'Powered by Omeka'"
+```
+
+Warning: parameters are not escaped.
+
+* Use of a library
+
+The default library adds a watermark to an image. Parameters can be, for this
+library, for a watermark from a file or a text:
+
+```
+    /www/plugins/FileModify/views/shared/images/qrcode.png, Center, fixe, 85
+    Powered by Omeka, Center, fixe, 85
+```
 
 
 Warning

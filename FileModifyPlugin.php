@@ -38,9 +38,6 @@ class FileModifyPlugin extends Omeka_Plugin_AbstractPlugin
      */
     protected $_options = array(
         'file_modify_backup_path' => '',
-        'file_modify_convert_resolution' => '',
-        'file_modify_convert_quality' => '',
-        'file_modify_convert_resize' => '',
         'file_modify_convert_append' => '',
         'file_modify_preprocess' => false,
         'file_modify_preprocess_parameters' => '',
@@ -68,6 +65,24 @@ class FileModifyPlugin extends Omeka_Plugin_AbstractPlugin
         if (version_compare($oldVersion, '2.2', '<')) {
             delete_option('file_modify_command');
         }
+
+        if (version_compare($oldVersion, '2.3', '<')) {
+            $append = get_option('file_modify_convert_resolution')
+                ? '-resample ' . get_option('file_modify_convert_resolution')
+                : '';
+            $append .= get_option('file_modify_convert_quality')
+                ? ' -quality ' . get_option('file_modify_convert_quality')
+                : '';
+            $append .= get_option('file_modify_convert_resize')
+                ? ' -resize ' . get_option('file_modify_convert_resize')
+                : '';
+            $append .= ' ' . get_option('file_modify_convert_append');
+
+            set_option('file_modify_convert_append', trim($append));
+            delete_option('file_modify_convert_resolution');
+            delete_option('file_modify_convert_quality');
+            delete_option('file_modify_convert_resize');
+        }
     }
 
     /**
@@ -83,13 +98,8 @@ class FileModifyPlugin extends Omeka_Plugin_AbstractPlugin
      */
     public function hookConfigForm($args)
     {
-        $view = $args['view'];
-        echo $view->partial(
-            'plugins/file-modify-config-form.php',
-            array(
-                'view' => $view,
-            )
-        );
+        $view = get_view();
+        echo $view->partial('plugins/file-modify-config-form.php');
     }
 
     /**
@@ -135,7 +145,7 @@ class FileModifyPlugin extends Omeka_Plugin_AbstractPlugin
 
             // Preprocess command.
             if ((boolean) get_option('file_modify_preprocess')) {
-                require_once 'libraries' . DIRECTORY_SEPARATOR . 'file_modify_preprocess.php';
+                require_once 'libraries' . DIRECTORY_SEPARATOR . 'FileModify' . DIRECTORY_SEPARATOR . 'Preprocess.php';
                 $result = file_modify_preprocess($file, get_option('file_modify_preprocess_parameters'));
                 if (!empty($result)) {
                     throw new Zend_Exception('Something went wrong when applying a command on the uploaded file with File Modify plugin. Please notify an administrator.');
@@ -148,7 +158,7 @@ class FileModifyPlugin extends Omeka_Plugin_AbstractPlugin
                     && get_option('archive_repertory_file_keep_original_name')
                 ) {
                 // Check if filename is a good one or not.
-                require_once 'libraries' . DIRECTORY_SEPARATOR . 'file_modify_rename.php';
+                require_once 'libraries' . DIRECTORY_SEPARATOR . 'FileModify' . DIRECTORY_SEPARATOR . 'Rename.php';
                 $new_filename = file_modify_rename($file);
 
                 if (!empty($new_filename)
@@ -216,39 +226,21 @@ class FileModifyPlugin extends Omeka_Plugin_AbstractPlugin
      */
     public static function _convert($file)
     {
+        $append = get_option('file_modify_convert_append');
+        if (empty($append)) {
+            return true;
+        }
+
         $convertPath = self::_getPathToImageMagick();
 
         $filePath = $file->getPath('original');
         $filePathTemp = sys_get_temp_dir() . DIRECTORY_SEPARATOR . pathinfo($file->filename, PATHINFO_FILENAME) . '_' . date('Ymd-His') . '.' . pathinfo($file->filename, PATHINFO_EXTENSION);
 
-        $resolution = get_option('file_modify_convert_resolution')
-            ? '-resample ' . escapeshellarg(get_option('file_modify_convert_resolution'))
-            : '';
-
-        $quality = get_option('file_modify_convert_quality')
-            ? '-quality ' . escapeshellarg(get_option('file_modify_convert_quality'))
-            : '';
-
-        $resize = get_option('file_modify_convert_resize')
-            ? '-resize ' . escapeshellarg(get_option('file_modify_convert_resize'))
-            : '';
-
-        $append = get_option('file_modify_convert_append')
-            ? escapeshellarg(get_option('file_modify_convert_append'))
-            : '';
-
-        if ($resolution . $quality . $resize . $append == '') {
-            return true;
-        }
-
         // Convert command.
         $command = join(' ', array(
             $convertPath,
             escapeshellarg($filePath),
-            $resolution,
-            $quality,
-            $resize,
-            $append,
+            ' ' . $append . ' ',
             escapeshellarg($filePathTemp)));
 
         exec($command, $result_array, $result_value);

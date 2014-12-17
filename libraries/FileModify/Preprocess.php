@@ -53,7 +53,7 @@ function file_modify_preprocess($file, $args)
     $dissolve = 95;
 
     // Get parameters.
-    $args = explode(' ', $args);
+    $args = explode(',', $args);
     if (isset($args[0]) && !empty($args[0])) {
         $watermark = $args[0];
         $watermark = trim($watermark);
@@ -175,7 +175,7 @@ function file_modify_preprocess($file, $args)
                         // . ' -font "Liberation-Sans-Regular"'
                         . ' -font "Arial"'
                         . ' -pointsize ' . $pointsize
-                        . ' -draw "gravity ' . escapeshellarg($gravity) . ' fill black text 0,12 ' . escapeshellarg($watermark . '  ') . ' fill yellow text 1,11 ' . escapeshellarg($watermark . '  ') . '"'
+                        . ' -draw "gravity ' . escapeshellarg($gravity) . ' fill black text 0,12 ' . escapeshellarg($watermark . '  ') . ' fill blue text 1,11 ' . escapeshellarg($watermark . '  ') . '"'
                         . ' %filepath%';
 
                     $command = str_replace('%filepath%', escapeshellarg($filePath), $command);
