@@ -51,6 +51,9 @@ function file_modify_preprocess($file, $args)
     $gravity = 'South';
     $size = 25;
     $dissolve = 95;
+    $police = dirname(__FILE__)
+        . DIRECTORY_SEPARATOR . 'Fonts'
+        . DIRECTORY_SEPARATOR . 'LiberationSans-Regular.ttf';
 
     // Get parameters.
     $args = explode(',', $args);
@@ -70,6 +73,9 @@ function file_modify_preprocess($file, $args)
     }
     if (isset($args[3]) && !empty($args[3])) {
         $dissolve = $args[3];
+    }
+    if (isset($args[4]) && !empty($args[4])) {
+        $police = $args[4];
     }
 
     // Check watermark.
@@ -161,7 +167,9 @@ function file_modify_preprocess($file, $args)
                     $height_watermark = $height * $size / 100;
                     switch ($height) {
                         case $height <= 256: $pointsize = 12; break;
-                        case $height <= 1024: $pointsize = 20; break;
+                        case $height <= 512: $pointsize = 14; break;
+                        case $height <= 1024: $pointsize = 16; break;
+                        case $height <= 1536: $pointsize = 24; break;
                         case $height <= 2048: $pointsize = 36; break;
                         case $height <= 3072: $pointsize = 48; break;
                         case $height <= 4000: $pointsize = 72; break;
@@ -169,13 +177,21 @@ function file_modify_preprocess($file, $args)
                         case $height > 6000: $pointsize = 120; break;
                     }
 
+                    $posX = round($width * 2.5 / 100);
+                    $posY = round($height * 2.5 / 100);
+
+                    // Works too.
+                    // convert w6-1.jpg \( -size 1555x2560 xc:none -gravity south-east -fill red -font "$police" -pointsize 36 -annotate 0x0+0+0 "Testing" \) -compose dissolve -define compose:args=100,100 -geometry +72+72 -composite z1.jpg
                     $command = 'convert'
                         . $hostLimit
                         . ' %filepath%'
-                        // . ' -font "Liberation-Sans-Regular"'
-                        . ' -font "Arial"'
+                        . ' -font "' . $police . '"'
                         . ' -pointsize ' . $pointsize
-                        . ' -draw "gravity ' . escapeshellarg($gravity) . ' fill black text 0,12 ' . escapeshellarg($watermark . '  ') . ' fill blue text 1,11 ' . escapeshellarg($watermark . '  ') . '"'
+                        . ' -draw "gravity ' . escapeshellarg($gravity)
+                            // Warning: don't use escapeshellarg() and use ' and not " to enclose string!
+                            . sprintf(' fill white text %d,%d %s', $posX + 1, $posY + 1, escapeshellarg($watermark))
+                            . sprintf(' fill #084B7B text %d,%d %s', $posX, $posY, escapeshellarg($watermark))
+                            . '"'
                         . ' %filepath%';
 
                     $command = str_replace('%filepath%', escapeshellarg($filePath), $command);
@@ -202,24 +218,24 @@ function file_modify_preprocess($file, $args)
                     list($width, $height, $format) = getimagesize($filePath);
 
                     // Calculate maximum height of a character, depending on used font.
-                    // $font = PUBLIC_THEME_DIR . DIRECTORY_SEPARATOR . 'My Watermark' . DIRECTORY_SEPARATOR . 'fonts' . DIRECTORY_SEPARATOR . 'LiberationSans-Regular.ttf';
-                    $font = 'arial.ttf';
                     switch ($height) {
                         case $height <= 256: $pointsize = 12; break;
-                        case $height <= 1024: $pointsize = 20; break;
+                        case $height <= 512: $pointsize = 14; break;
+                        case $height <= 1024: $pointsize = 16; break;
+                        case $height <= 1536: $pointsize = 24; break;
                         case $height <= 2048: $pointsize = 36; break;
                         case $height <= 3072: $pointsize = 48; break;
                         case $height <= 4000: $pointsize = 72; break;
-                        case $height <= 6000: $pointsize = 80; break;
-                        case $height > 6000: $pointsize = 100; break;
+                        case $height <= 6000: $pointsize = 100; break;
+                        case $height > 6000: $pointsize = 120; break;
                     }
-                    // $bbox = imagettfbbox($pointsizeize, 0, $font, 'ky');
+                    // $bbox = imagettfbbox($pointsizeize, 0, $police, 'ky');
                     // $x = 8;
                     // $y = 8 - $bbox[5];
                     $x = 24;
                     $y = $height - 24;
 
-                    shadow_text($image, $pointsize, $x, $y, $font, $watermark);
+                    shadow_text($image, $pointsize, $x, $y, $police, $watermark);
 
                     $error = imagejpeg($image, $filePath, 85);
                     // Should return 0 if no error, not true.
