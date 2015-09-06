@@ -1,10 +1,10 @@
 File Modify (plugin for Omeka)
-====================================
+==============================
 
 
-[File Modify] is a plugin for [Omeka] allows to modify (convert, compress,
-watermark, rename or any other command) uploaded file before saving it in
-files folder and before creating metadata in Omeka database.
+[File Modify] is a plugin for [Omeka] that allows to modify (convert, compress,
+watermark, rename or any other command) uploaded file before saving it in files
+folder and before creating metadata in Omeka database.
 
 The example process adds a watermark to each uploaded image.
 Original files can be backup automatically if wanted.
@@ -101,6 +101,7 @@ Current maintainers:
 
 First version of this plugin has been built for [École des Ponts ParisTech].
 Upgrade to 2.0 has been made for [Mines ParisTech].
+
 
 Copyright
 ---------

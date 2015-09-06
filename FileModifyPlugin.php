@@ -4,8 +4,8 @@
  * file before saving it in archive folder and before creating metadata in Omeka
  * database. Renaming requires Archive Repertory plugin.
  *
- * @copyright Daniel Berthereau, 2012-2013
- * @license http://www.cecill.info/licences/Licence_CeCILL_V2-en.txt
+ * @copyright Daniel Berthereau, 2012-2015
+ * @license http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.txt
  * @package FileModify
  */
 
@@ -50,7 +50,7 @@ class FileModifyPlugin extends Omeka_Plugin_AbstractPlugin
     public function hookInstall()
     {
         $this->_options['file_modify_preprocess_parameters'] = realpath(dirname(__FILE__) . '/views/shared/images/qrcode.png')
-            . ' South 25 95';
+            . ', South, 25, 95';
         $this->_installOptions();
     }
 
@@ -119,8 +119,10 @@ class FileModifyPlugin extends Omeka_Plugin_AbstractPlugin
             $post['file_modify_backup_path'] = '';
         }
 
-        foreach ($post as $key => $value) {
-            set_option($key, $value);
+        foreach ($this->_options as $optionKey => $optionValue) {
+            if (isset($post[$optionKey])) {
+                set_option($optionKey, $post[$optionKey]);
+            }
         }
     }
 
