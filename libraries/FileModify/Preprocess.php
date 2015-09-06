@@ -37,7 +37,7 @@ function file_modify_preprocess($file, $args)
 {
     list($imageLibrary, $hostLimit) = file_modify_default_parameters();
 
-    $filePath = $file->getPath('original');
+    $filepath = $file->getPath('original');
 
     // Check the file before processing.
 
@@ -96,7 +96,7 @@ function file_modify_preprocess($file, $args)
                     }
                     else {
                         $command = 'identify -format "%Q" %filepath%';
-                        $command = str_replace('%filepath%', escapeshellarg($filePath), $command);
+                        $command = str_replace('%filepath%', escapeshellarg($filepath), $command);
                         unset($error);
                         unset($output);
                         exec($command, $output, $error);
@@ -118,7 +118,7 @@ function file_modify_preprocess($file, $args)
                     }
                     else {
                         $command = 'identify -format "%[width]" %filepath%';
-                        $command = str_replace('%filepath%', escapeshellarg($filePath), $command);
+                        $command = str_replace('%filepath%', escapeshellarg($filepath), $command);
                         unset($error);
                         unset($output);
                         exec($command, $output, $error);
@@ -137,7 +137,7 @@ function file_modify_preprocess($file, $args)
                             . ' %filepath%'
                             . ' %filepath%';
                     }
-                    $command = str_replace('%filepath%', escapeshellarg($filePath), $command);
+                    $command = str_replace('%filepath%', escapeshellarg($filepath), $command);
                     unset($error);
                     unset($output);
                     exec($command, $output, $error);
@@ -154,7 +154,7 @@ function file_modify_preprocess($file, $args)
                 case 'ExternalImageMagick':
                     // See http://www.imagemagick.org/Usage/annotating/
                     $command = 'identify -format "%[width] %[height] %Q" %filepath%';
-                    $command = str_replace('%filepath%', escapeshellarg($filePath), $command);
+                    $command = str_replace('%filepath%', escapeshellarg($filepath), $command);
                     unset($error);
                     unset($output);
                     exec($command, $output, $error);
@@ -194,7 +194,7 @@ function file_modify_preprocess($file, $args)
                             . '"'
                         . ' %filepath%';
 
-                    $command = str_replace('%filepath%', escapeshellarg($filePath), $command);
+                    $command = str_replace('%filepath%', escapeshellarg($filepath), $command);
                     unset($error);
                     unset($output);
                     exec($command, $output, $error);
@@ -206,7 +206,7 @@ function file_modify_preprocess($file, $args)
                 case 'GD':
                     // GD uses multiple functions to load an image, so this one manages all.
                     try {
-                        $image = imagecreatefromstring(file_get_contents($filePath));
+                        $image = imagecreatefromstring(file_get_contents($filepath));
                     } catch (Exception $e) {
                         _log("GD failed to open the file. Details:\n$e", Zend_Log::ERR);
                         return false;
@@ -215,7 +215,7 @@ function file_modify_preprocess($file, $args)
                         return false;
                     }
 
-                    list($width, $height, $format) = getimagesize($filePath);
+                    list($width, $height, $format) = getimagesize($filepath);
 
                     // Calculate maximum height of a character, depending on used font.
                     switch ($height) {
@@ -237,7 +237,7 @@ function file_modify_preprocess($file, $args)
 
                     shadow_text($image, $pointsize, $x, $y, $police, $watermark);
 
-                    $error = imagejpeg($image, $filePath, 85);
+                    $error = imagejpeg($image, $filepath, 85);
                     // Should return 0 if no error, not true.
                     $error = $error ? 0 : 1;
                     break;

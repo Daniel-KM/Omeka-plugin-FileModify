@@ -192,7 +192,7 @@ class FileModifyPlugin extends Omeka_Plugin_AbstractPlugin
             return null;
         }
 
-        $filePath = $file->getPath('original');
+        $filepath = $file->getPath('original');
 
         // TODO Use multiple derivatives when committed.
         $backupItemPath = $backupPath . DIRECTORY_SEPARATOR . $file->item_id;
@@ -217,7 +217,7 @@ class FileModifyPlugin extends Omeka_Plugin_AbstractPlugin
                 . $checkName
                 . ($extension ? '.' . $extension : '');
         }
-        $result = copy($filePath, $backupFilePath);
+        $result = copy($filepath, $backupFilePath);
         return $result;
     }
 
@@ -235,37 +235,37 @@ class FileModifyPlugin extends Omeka_Plugin_AbstractPlugin
 
         $convertPath = self::_getPathToImageMagick();
 
-        $filePath = $file->getPath('original');
-        $filePathTemp = sys_get_temp_dir() . DIRECTORY_SEPARATOR . pathinfo($file->filename, PATHINFO_FILENAME) . '_' . date('Ymd-His') . '.' . pathinfo($file->filename, PATHINFO_EXTENSION);
+        $filepath = $file->getPath('original');
+        $filepathTemp = sys_get_temp_dir() . DIRECTORY_SEPARATOR . pathinfo($file->filename, PATHINFO_FILENAME) . '_' . date('Ymd-His') . '.' . pathinfo($file->filename, PATHINFO_EXTENSION);
 
         // Convert command.
         $command = join(' ', array(
             $convertPath,
-            escapeshellarg($filePath),
+            escapeshellarg($filepath),
             ' ' . $append . ' ',
-            escapeshellarg($filePathTemp)));
+            escapeshellarg($filepathTemp)));
 
         exec($command, $result_array, $result_value);
 
         if (empty($result_value)) {
             // For security reason and to use only Omeka Core, we do the move in
             // three times.
-            $filePath = pathinfo($filePath, PATHINFO_BASENAME);
-            $filePathTemp = pathinfo($filePathTemp, PATHINFO_BASENAME);
-            $filePathSave = pathinfo($filePath, PATHINFO_FILENAME) . '_' . date('Ymd-His') . '_ori.' . pathinfo($filePath, PATHINFO_EXTENSION);
+            $filepath = pathinfo($filepath, PATHINFO_BASENAME);
+            $filepathTemp = pathinfo($filepathTemp, PATHINFO_BASENAME);
+            $filepathSave = pathinfo($filepath, PATHINFO_FILENAME) . '_' . date('Ymd-His') . '_ori.' . pathinfo($filepath, PATHINFO_EXTENSION);
 
             // Save original file.
             $operation = new Omeka_Storage_Adapter_Filesystem(array(
                 'localDir' => sys_get_temp_dir(),
                 'webDir' => sys_get_temp_dir(),
             ));
-            $operation->move($filePath, $filePathSave);
+            $operation->move($filepath, $filepathSave);
 
             // Move modified file.
-            $operation->move($filePathTemp, $filePath);
+            $operation->move($filepathTemp, $filepath);
 
             // Delete original file.
-            $operation->delete($filePathSave);
+            $operation->delete($filepathSave);
 
             return true;
         }
