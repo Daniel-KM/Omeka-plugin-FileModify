@@ -57,25 +57,20 @@ function file_modify_preprocess($file, $args)
 
     // Get parameters.
     $args = explode(',', $args);
-    if (isset($args[0]) && !empty($args[0])) {
-        $watermark = $args[0];
-        $watermark = trim($watermark);
+    if (isset($args[0]) && trim($args[0]) != '') {
+        $watermark = trim($args[0]);
     }
-    if (isset($args[1]) && !empty($args[1])) {
-        $gravity = $args[1];
-        $gravity = trim($gravity);
+    if (isset($args[1]) && trim($args[1]) != '') {
+        $gravity = trim($args[1]);
     }
-    if (isset($args[2]) && !empty($args[2])) {
-        $size = $args[2];
-        if (trim($size) == 'fixe') {
-            $size = 'fixe';
-        }
+    if (isset($args[2]) && trim($args[2]) != '') {
+        $size = trim($args[2]);
     }
-    if (isset($args[3]) && !empty($args[3])) {
-        $dissolve = $args[3];
+    if (isset($args[3]) && trim($args[3]) != '') {
+        $dissolve = trim($args[3]);
     }
-    if (isset($args[4]) && !empty($args[4])) {
-        $police = $args[4];
+    if (isset($args[4]) && trim($args[4]) != '') {
+        $police = trim($args[4]);
     }
 
     // Check watermark.
