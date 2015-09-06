@@ -17,6 +17,7 @@ function file_modify_default_parameters()
         // 'imageLibrary' => 'Imagick',
         // 'imageLibrary' => 'GD',
         // Image magick: limit parameters for some shared host.
+        // Memory area can be set directly by arguments.
         // 'hostLimit' => ' ' . '-limit memory 50MB -limit map 100MB -limit area 25MB -limit disk 1GB -limit thread 2' . ' ',
         'hostLimit' => '',
     ));
@@ -71,6 +72,10 @@ function file_modify_preprocess($file, $args)
     }
     if (isset($args[4]) && trim($args[4]) != '') {
         $police = trim($args[4]);
+    }
+    // Manage memory area for Image Magick.
+    if (isset($args[5]) && trim($args[5]) != '') {
+        $hostLimit .= ' -limit area ' . escapeshellarg(trim($args[5]));
     }
 
     // Check watermark.
