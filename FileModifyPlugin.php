@@ -137,11 +137,11 @@ class FileModifyPlugin extends Omeka_Plugin_AbstractPlugin
         if ($args['insert']) {
             // Save the file in the uploaded folder if wanted.
             if ($this->_backup($file) === false) {
-                throw new Zend_Exception('Unable to backup original file before processing. Please notify an administrator.');
+                throw new Zend_Exception(__('Unable to backup original file "%s" before processing it with the plugin File Modify.', $file->original_filename));
             }
 
             // Watermarks images only.
-            if (strstr($file->mime_type, '/', TRUE) == 'image') {
+            if (strstr($file->mime_type, '/', true) == 'image') {
                 self::_convert($file);
             }
 
@@ -150,7 +150,7 @@ class FileModifyPlugin extends Omeka_Plugin_AbstractPlugin
                 require_once 'libraries' . DIRECTORY_SEPARATOR . 'FileModify' . DIRECTORY_SEPARATOR . 'Preprocess.php';
                 $result = file_modify_preprocess($file, get_option('file_modify_preprocess_parameters'));
                 if (!empty($result)) {
-                    throw new Zend_Exception('Something went wrong when applying a command on the uploaded file with File Modify plugin. Please notify an administrator.');
+                    throw new Zend_Exception(__('Something went wrong when applying a command on the uploaded file "%s" with the plugin File Modify.', $file->original_filename));
                 }
             }
 
@@ -270,7 +270,7 @@ class FileModifyPlugin extends Omeka_Plugin_AbstractPlugin
             return true;
         }
         else {
-            throw new Zend_Exception('Something went wrong with image conversion (File Modify plugin). Please notify an administrator.');
+            throw new Zend_Exception(__('Something went wrong with image conversion for file "%" with the plugin File Modify.', $file->original_filename));
         }
     }
 
