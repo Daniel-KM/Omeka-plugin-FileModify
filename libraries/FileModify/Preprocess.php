@@ -92,7 +92,7 @@ function file_modify_preprocess($file, $args)
                     // Fix a bug with libpng 1.2 and bad formatted png.
                     // @see http://www.imagemagick.org/discourse-server/viewtopic.php?f=3&t=22119
                     if ($file->mime_type == 'image/png') {
-                        $quality = 9;
+                        $quality = 109;
                     }
                     else {
                         $command = 'identify -format "%Q" %filepath%';
