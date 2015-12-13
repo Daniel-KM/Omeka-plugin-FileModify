@@ -210,7 +210,7 @@ class FileModifyPlugin extends Omeka_Plugin_AbstractPlugin
             $checkname = $name = pathinfo($file->original_filename, PATHINFO_FILENAME);
             $extension = pathinfo($file->original_filename, PATHINFO_EXTENSION);
             $i = 1;
-            while (glob($folder . DIRECTORY_SEPARATOR . $checkName . '{.*,.,\,,}', GLOB_BRACE)) {
+            while (glob($folder . DIRECTORY_SEPARATOR . $checkname . '{.*,.,\,,}', GLOB_BRACE)) {
                 $checkName = $name . '.' . $i++;
             }
             $backupFilePath = $backupItemPath . DIRECTORY_SEPARATOR
