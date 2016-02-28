@@ -38,6 +38,7 @@ class FileModifyPlugin extends Omeka_Plugin_AbstractPlugin
      */
     protected $_options = array(
         'file_modify_backup_path' => '',
+        'file_modify_skip_filesize' => '',
         'file_modify_convert_append' => '',
         'file_modify_preprocess' => false,
         'file_modify_preprocess_parameters' => '',
@@ -133,25 +134,33 @@ class FileModifyPlugin extends Omeka_Plugin_AbstractPlugin
     {
         $post = $args['post'];
         $file = $args['record'];
-
         if ($args['insert']) {
             // Save the file in the uploaded folder if wanted.
             if ($this->_backup($file) === false) {
                 throw new Zend_Exception(__('Unable to backup original file "%s" before processing it with the plugin File Modify.', $file->original_filename));
             }
 
-            // Watermarks images only.
-            if (strstr($file->mime_type, '/', true) == 'image') {
-                self::_convert($file);
+            $skipFilesize = get_option('file_modify_skip_filesize');
+            $skip = false;
+            if (!empty($skipFilesize) && $file->size > $skipFilesize) {
+                $skip = true;
+                _log(sprintf('[FileModify]: The file "%s" has been skipped because of its size (%d).', $file->original_filename, $file->size), Zend_Log::WARN);
             }
 
-            // Preprocess command.
-            if ((boolean) get_option('file_modify_preprocess')) {
-                require_once 'libraries' . DIRECTORY_SEPARATOR . 'FileModify' . DIRECTORY_SEPARATOR . 'Preprocess.php';
-                $result = file_modify_preprocess($file, get_option('file_modify_preprocess_parameters'));
-                if (!empty($result)) {
-                    throw new Zend_Exception(__('Something went wrong when applying a command on the uploaded file "%s" with the plugin File Modify',
-                        $file->original_filename, $result == '1' ? '.' : $result));
+            if (!$skip) {
+                // Watermarks images only.
+                if (strstr($file->mime_type, '/', true) == 'image') {
+                    self::_convert($file);
+                }
+
+                // Preprocess command.
+                if ((boolean) get_option('file_modify_preprocess')) {
+                    require_once 'libraries' . DIRECTORY_SEPARATOR . 'FileModify' . DIRECTORY_SEPARATOR . 'Preprocess.php';
+                    $result = file_modify_preprocess($file, get_option('file_modify_preprocess_parameters'));
+                    if (!empty($result)) {
+                        throw new Zend_Exception(__('Something went wrong when applying a command on the uploaded file "%s" with the plugin File Modify',
+                            $file->original_filename, $result == '1' ? '.' : $result));
+                    }
                 }
             }
 

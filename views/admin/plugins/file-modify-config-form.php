@@ -23,6 +23,21 @@
     </p>
     <div class="field">
         <div class="two columns alpha">
+            <?php echo $this->formLabel('file_modify_skip_filesize',
+                __('Max size to process')); ?>
+        </div>
+        <div class='inputs five columns omega'>
+            <p class="explanation">
+                <?php echo __('The modification of a file may fail when it is too big.'); ?>
+                <?php echo __('This field allows to define a limit in bytes above which the modification will be skipped, so the file will be uploaded unchanged.'); ?>
+                <?php echo __('A warning will be added in "errors.log".'); ?>
+                <?php echo __("Let empty if you don't want to use this feature."); ?>
+            </p>
+            <?php echo $this->formText('file_modify_skip_filesize', get_option('file_modify_skip_filesize'), null); ?>
+        </div>
+    </div>
+    <div class="field">
+        <div class="two columns alpha">
             <?php echo $this->formLabel('file_modify_convert_append',
                 __('Basic command for ImageMagick "convert"')); ?>
         </div>
