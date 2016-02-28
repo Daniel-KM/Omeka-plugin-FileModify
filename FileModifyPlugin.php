@@ -150,7 +150,8 @@ class FileModifyPlugin extends Omeka_Plugin_AbstractPlugin
                 require_once 'libraries' . DIRECTORY_SEPARATOR . 'FileModify' . DIRECTORY_SEPARATOR . 'Preprocess.php';
                 $result = file_modify_preprocess($file, get_option('file_modify_preprocess_parameters'));
                 if (!empty($result)) {
-                    throw new Zend_Exception(__('Something went wrong when applying a command on the uploaded file "%s" with the plugin File Modify.', $file->original_filename));
+                    throw new Zend_Exception(__('Something went wrong when applying a command on the uploaded file "%s" with the plugin File Modify',
+                        $file->original_filename, $result == '1' ? '.' : $result));
                 }
             }
 

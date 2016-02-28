@@ -101,6 +101,7 @@ function file_modify_preprocess($file, $args)
                         unset($output);
                         exec($command, $output, $error);
                         if ($error) {
+                            _log('[FileModify]: Error: ' . $error . PHP_EOL . 'Command:' . PHP_EOL . $command, Zend_Log::ERR);
                             return $error;
                         }
                         $quality = $output[0];
@@ -123,6 +124,7 @@ function file_modify_preprocess($file, $args)
                         unset($output);
                         exec($command, $output, $error);
                         if ($error) {
+                            _log('[FileModify]: Error: ' . $error . PHP_EOL . 'Command:' . PHP_EOL . $command, Zend_Log::ERR);
                             return $error;
                         }
                         $width = $output[0];
@@ -141,11 +143,16 @@ function file_modify_preprocess($file, $args)
                     unset($error);
                     unset($output);
                     exec($command, $output, $error);
+                    if ($error) {
+                        _log('[FileModify]: Error: ' . $error . PHP_EOL . 'Command:' . PHP_EOL . $command, Zend_Log::ERR);
+                        return $error;
+                    }
                     break;
 
                 case 'Imagick':
                 case 'GD':
-
+                    _log('[FileModify]: Error: Imagick and GD are not managed.', Zend_Log::ERR);
+                    return 1;
             }
             break;
 
@@ -159,6 +166,7 @@ function file_modify_preprocess($file, $args)
                     unset($output);
                     exec($command, $output, $error);
                     if ($error) {
+                        _log('[FileModify]: Error: ' . $error . PHP_EOL . 'Command:' . PHP_EOL . $command, Zend_Log::ERR);
                         return $error;
                     }
                     list($width, $height, $quality) = explode(' ', $output[0]);
@@ -198,21 +206,27 @@ function file_modify_preprocess($file, $args)
                     unset($error);
                     unset($output);
                     exec($command, $output, $error);
+                    if ($error) {
+                        _log('[FileModify]: Error: ' . $error . PHP_EOL . 'Command:' . PHP_EOL . $command, Zend_Log::ERR);
+                        return $error;
+                    }
                     break;
 
                 case 'Imagick':
-                    break;
+                    _log('[FileModify]: Error: Imagick is not managed.', Zend_Log::ERR);
+                    return 1;
 
                 case 'GD':
                     // GD uses multiple functions to load an image, so this one manages all.
                     try {
                         $image = imagecreatefromstring(file_get_contents($filepath));
                     } catch (Exception $e) {
-                        _log("GD failed to open the file. Details:\n$e", Zend_Log::ERR);
-                        return false;
+                        _log('GD failed to open the file. Details:' . PHP_EOL . $e->getMessage(), Zend_Log::ERR);
+                        return $e->getMessage();
                     }
                     if (empty($image)) {
-                        return false;
+                        _log('GD returned an empty image.', Zend_Log::ERR);
+                        return 1;
                     }
 
                     list($width, $height, $format) = getimagesize($filepath);
@@ -245,6 +259,9 @@ function file_modify_preprocess($file, $args)
     }
 
     // Return error code if any.
+    if ($error) {
+        _log('[FileModify]: Unknown Error.', Zend_Log::ERR);
+    }
     return $error;
 }
 
